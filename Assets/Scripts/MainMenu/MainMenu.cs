@@ -6,27 +6,33 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
+    [Header("Menu Navigation")]
+    [SerializeField] private SaveSlotMenu saveSlotMenu;
+
+    [Header("Menu Buttons")]
     [SerializeField] private Button continueButton;
+    [SerializeField] private Button loadButton;
 
     private void Start()
     {
         // if there is a save file,
         // then continue button is interactable
         // else it is not interactable
-        continueButton.interactable = DataPersistenceManager.Instance.fileDataHandler.TryLoad();
+        bool isThereAnySave = DataPersistenceManager.Instance.fileDataHandler.TryLoad(DataPersistenceManager.Instance.selectedProfileId);
+        continueButton.interactable = isThereAnySave;
+        loadButton.interactable = isThereAnySave;
     }
 
     public void OnNewGameButtonClicked()
     {
-        // Creates a new gameData with default values
-        DataPersistenceManager.Instance.NewGame();
+        saveSlotMenu.ActivateMenu(false);
+        DeactivateMenu();
+    }
 
-        // Save the newly created gameData before the new scene
-        DataPersistenceManager.Instance.SaveGame();
-
-        // When MainScene unloaded, newly created gameData will be saved.
-        // Because of the SaveGame() method inside the OnSceneUnloaded()
-        SceneManager.LoadSceneAsync("MarketScene");
+    public void OnLoadGameButtonClicked()
+    {
+        saveSlotMenu.ActivateMenu(true);
+        DeactivateMenu();
     }
 
     public void OnContinueButtonClicked()
@@ -39,5 +45,15 @@ public class MainMenu : MonoBehaviour
     public void OnExitButtonClicked()
     {
         Application.Quit();
+    }
+
+    public void ActivateMenu()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void DeactivateMenu() 
+    {
+        gameObject.SetActive(false);
     }
 }

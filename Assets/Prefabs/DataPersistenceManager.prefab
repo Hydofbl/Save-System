@@ -44,4 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81144c8aac673914e9d0e723304e3059, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fileName: saveData.save
+  fileName: saveData.json
+  selectedProfileId: 

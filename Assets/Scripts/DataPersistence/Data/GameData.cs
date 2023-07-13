@@ -1,6 +1,7 @@
 ﻿[System.Serializable]
 public class GameData
 {
+    public long lastUpdated;
     public string playerName;
     public int money;
     public int health;

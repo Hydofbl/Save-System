@@ -13,6 +13,7 @@ public class DataPersistenceManager : MonoBehaviour
     private GameData gameData;
     private List<IDataPersistance> dataPersistanceObjects;
 
+    public string selectedProfileId = "";
     public FileDataHandler fileDataHandler;
     public static DataPersistenceManager Instance{get; private set;}
 
@@ -20,12 +21,16 @@ public class DataPersistenceManager : MonoBehaviour
     {
         if(Instance != null)
         {
-            Debug.LogError("Found more than one Data Persistence Manager. Newer one deleted.");
-            //Destroy(gameObject);
+            Debug.Log("Found more than one Data Persistence Manager. Newer one deleted.");
+            Destroy(gameObject);
+            return;
         }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
 
         fileDataHandler = new FileDataHandler(Application.persistentDataPath, fileName);
+
+        selectedProfileId = fileDataHandler.GetMostRecentlyUpdatedProfileId();
     }
 
     private void OnEnable()
@@ -45,11 +50,10 @@ public class DataPersistenceManager : MonoBehaviour
         LoadGame();
     }
 
-    private List<IDataPersistance> FindAllDataPersistenceObjects()
+    public void ChangeSelectedProfileId(string newProfileId)
     {
-        IEnumerable<IDataPersistance> dataPersistanceObjects = FindObjectsOfType<MonoBehaviour>().OfType<IDataPersistance>();
-
-        return new List<IDataPersistance>(dataPersistanceObjects);
+        selectedProfileId = newProfileId;
+        LoadGame();
     }
 
     public void NewGame()
@@ -64,12 +68,14 @@ public class DataPersistenceManager : MonoBehaviour
             obj.SaveData(ref gameData);
         }
 
-        fileDataHandler.Save(gameData);
+        gameData.lastUpdated = DateTime.Now.ToBinary();
+
+        fileDataHandler.Save(gameData, selectedProfileId);
     }
 
     public void LoadGame() 
     {
-        gameData = fileDataHandler.Load();
+        gameData = fileDataHandler.Load(selectedProfileId);
 
         if(gameData == null)
         {
@@ -81,6 +87,18 @@ public class DataPersistenceManager : MonoBehaviour
         {
             obj.LoadData(gameData);
         }
+    }
+
+    private List<IDataPersistance> FindAllDataPersistenceObjects()
+    {
+        IEnumerable<IDataPersistance> dataPersistanceObjects = FindObjectsOfType<MonoBehaviour>().OfType<IDataPersistance>();
+
+        return new List<IDataPersistance>(dataPersistanceObjects);
+    }
+
+    public Dictionary<string, GameData> GetAllProfilesGameData()
+    {
+        return fileDataHandler.LoadAllProfiles();
     }
 
     private void OnApplicationQuit()
